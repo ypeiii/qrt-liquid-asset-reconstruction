@@ -21,6 +21,8 @@
 
 The supplied PNG is reproduced unchanged. Its SHA-256 is `57678e19c522fcbbfed92348c5278c8c6ddd4646426e898fe83f3de1d3495743`. The release checker accepts only this reviewed image digest. The image contains no private feature construction, prediction arrays, account email, or access tokens. Inspection found only image/size-related PNG chunks, with no embedded textual metadata.
 
+The screenshot is evidence, not MIT-licensed source material. Third-party rights are not granted by this repository; see [license scope and third-party notices](../THIRD_PARTY_NOTICES.md).
+
 The public challenge page confirms the task and metric, but does not show the ranking entry in the retrieved public view. The image supports what was visible in that supplied screenshot; it does not establish a current live rank, capture time, or final result.
 
 To support the full expression "5/484", add separate evidence of the total field size and clarify whether it counts entries, participants, or teams. A capture timestamp can be added if the author can confirm it. Until then the principal project claim is rank 5 on the public leaderboard, score 0.7511.

@@ -13,6 +13,11 @@ import zipfile
 
 
 TEXT_SUFFIXES = {".md", ".py", ".toml", ".yml", ".ipynb", ".txt"}
+TEXT_FILENAMES = {".gitignore", "LICENSE"}
+REQUIRED_FILES = {
+    ".github/workflows/ci.yml", ".gitignore", "LICENSE",
+    "PUBLIC_FILES.txt", "THIRD_PARTY_NOTICES.md",
+}
 REVIEWED_IMAGES = {
     "docs/evidence/public-leaderboard.png": "57678e19c522fcbbfed92348c5278c8c6ddd4646426e898fe83f3de1d3495743",
 }
@@ -68,6 +73,9 @@ def validate_release(root: Path) -> list[Path]:
     names = [line.strip() for line in (root / "PUBLIC_FILES.txt").read_text(encoding="utf-8").splitlines() if line.strip()]
     if len(names) != len(set(names)) or "PUBLIC_FILES.txt" not in names:
         raise ValueError("Release allowlist must be unique and include itself.")
+    missing = REQUIRED_FILES.difference(names)
+    if missing:
+        raise ValueError(f"Required release files missing from allowlist: {', '.join(sorted(missing))}")
     paths = []
     for name in names:
         relative = PurePosixPath(name)
@@ -80,7 +88,7 @@ def validate_release(root: Path) -> list[Path]:
             validate_reviewed_image(name, path.read_bytes())
             paths.append(path)
             continue
-        if path.name != ".gitignore" and path.suffix not in TEXT_SUFFIXES:
+        if name not in TEXT_FILENAMES and path.suffix not in TEXT_SUFFIXES:
             raise ValueError(f"Non-text release payload: {name}")
         contents = path.read_text(encoding="utf-8")
         if "\x00" in contents:

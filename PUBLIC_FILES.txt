@@ -1,7 +1,9 @@
 .github/workflows/ci.yml
 .gitignore
+LICENSE
 PUBLIC_FILES.txt
 README.md
+THIRD_PARTY_NOTICES.md
 docs/PUBLISHING.md
 docs/CODE_REVIEW_GUIDE.md
 docs/COMPETITION_CASE_STUDY.md

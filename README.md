@@ -96,4 +96,8 @@ The public demo is a newly factored engineering example, not a verbatim release 
 
 Only the public training/validation framework and independent synthetic demonstration are included. No private feature provider is supplied, and simply placing the original competition files beside these notebooks will not reproduce the competition run.
 
-The original leaderboard screenshot is included as reviewed evidence. Before publishing, verify the challenge-specific sharing rules and review [the release checklist](docs/PUBLISHING.md). A public-source license has not been selected in this prepared version; the author should make that choice deliberately. This project is independent and is not affiliated with or endorsed by QRT, ENS, or a prospective employer.
+The original leaderboard screenshot is included as reviewed evidence. Review the challenge-specific sharing rules and [the release checklist](docs/PUBLISHING.md) before redistributing or adding material. This project is independent and is not affiliated with or endorsed by QRT, ENS, or a prospective employer.
+
+## License
+
+The author's original code and documentation are licensed under the [MIT License](LICENSE). The leaderboard screenshot and third-party content are excluded from that grant; see [license scope and third-party notices](THIRD_PARTY_NOTICES.md). Competition data and proprietary feature construction are not distributed or licensed by this public release.
