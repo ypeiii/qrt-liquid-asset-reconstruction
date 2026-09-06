@@ -24,9 +24,12 @@ src/quant_portfolio/data.py
 src/quant_portfolio/demo.py
 src/quant_portfolio/features.py
 src/quant_portfolio/models.py
+src/quant_portfolio/provenance.py
 src/quant_portfolio/ridge_path.py
 src/quant_portfolio/search.py
 tests/test_artifacts.py
+tests/test_experiment_provenance.py
+tests/test_search_validation.py
 tests/test_blend.py
 tests/test_pipeline.py
 tests/test_ridge_path.py

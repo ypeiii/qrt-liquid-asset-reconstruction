@@ -1,5 +1,7 @@
 # Reconstruction of Liquid Asset Performance
 
+[![Synthetic workflow checks](https://github.com/ypeiii/qrt-liquid-asset-reconstruction/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/ypeiii/qrt-liquid-asset-reconstruction/actions/workflows/ci.yml)
+
 Quantitative machine-learning research by **yang.pei** for [QRT / ENS ChallengeData #44](https://challengedata.ens.fr/challenges/44).
 
 **Public leaderboard rank: 5. Displayed public score: 0.7511. Username: `yang.pei`.**
@@ -16,7 +18,7 @@ This project studies how to combine a pooled linear model with target-specific t
 | How can repeated linear fits share computation? | Fit one weighted design decomposition and reuse its spectral shrinkage across regularization strengths, checked against independent fits | [Numerical solver](src/quant_portfolio/ridge_path.py) |
 | How are parameters compared? | Shared group folds, a coarse-to-fine Ridge grid, and persistent Optuna studies with fixed seeds and context checks | [Search implementation](src/quant_portfolio/search.py) |
 | Why not simply maximize one weight-search score? | Inspect the intersection of near-optimal weight sets across twenty resampled training partitions, then report its selection limitations | [Blend implementation](src/quant_portfolio/blend.py) |
-| How can a silent blend error be caught? | Check ordered IDs, input fingerprints, finite predictions, and prediction-file hashes before combining models | [Artifact implementation](src/quant_portfolio/artifacts.py) |
+| How can a silent blend error be caught? | Attach generation context to predictions; verify ordered IDs, protocol and hashes; then pin immutable source generations in the ensemble manifest | [Artifact implementation](src/quant_portfolio/artifacts.py) |
 
 ## Review the project
 
@@ -27,7 +29,7 @@ Start with the [competition case study](docs/COMPETITION_CASE_STUDY.md), then th
 3. [ExtraTrees](notebooks/03_extra_trees.ipynb)
 4. [Common-weight ensemble](notebooks/04_ensemble.ipynb)
 
-The [test suite](tests) and [CI configuration](.github/workflows/ci.yml) exercise numerical correctness, group separation, held-out-label isolation, search resumption, and artifact alignment. Actual local test results are recorded in [verification](docs/VERIFICATION.md); remote CI is not claimed until it has run.
+The [test suite](tests) and [CI configuration](.github/workflows/ci.yml) exercise numerical correctness, group separation, held-out-label isolation, search resumption, immutable artifact generations, and ensemble provenance. The badge reports the current remote workflow status; separately recorded local results are documented in [verification](docs/VERIFICATION.md).
 
 ## Problem and metric
 
@@ -45,10 +47,10 @@ The models predict a continuous response. A non-negative raw prediction becomes 
 Independent synthetic panel
   -> date-grouped folds -> fold-scoped feature interface
   -> pooled two-stage Ridge / LightGBM / ExtraTrees
-  -> aligned out-of-fold predictions
+  -> context-bound OOF/full-refit predictions -> immutable model generations
   -> 4 repetitions x 5 weight-selection partitions
   -> intersection of epsilon-near-optimal candidate weights
-  -> full-data refits -> raw predictions -> synthetic submission-style file
+  -> one selected configuration -> pinned ensemble generation -> synthetic submission-style file
 ```
 
 | Component | Demonstrated implementation |
@@ -56,9 +58,9 @@ Independent synthetic panel
 | Ridge | Pool-level prediction plus target-level residual regression; fold-local imputation and scaling; coarse search followed by a local 0.01 grid |
 | LightGBM | Per-target regression; native missing-value handling; Optuna search |
 | ExtraTrees | Per-target regression; native missing-value handling; Optuna search |
-| Experiment state | SQLite trial persistence, fixed random seeds, bounded resume batches, data/configuration fingerprints |
-| Ensemble | Non-negative weights summing to one; day-grouped stability analysis; explicit infeasibility and deterministic tie-breaking |
-| Prediction files | Unique row IDs, exact index alignment, finite-value checks, and SHA-256 verification |
+| Experiment state | SQLite trial persistence, fixed random seeds, bounded resume batches, early argument rejection, and data/configuration fingerprints |
+| Ensemble | Non-negative weights summing to one; day-grouped stability analysis; explicit infeasibility, deterministic tie-breaking, and export of the exact selected configuration |
+| Prediction files | Generation context, unique row IDs, exact index alignment, immutable run directories, atomic active manifests, and SHA-256 verification |
 
 The executable search spaces and synthetic features are demonstration choices, **not** production settings. The case study separately identifies facts checked against the private research record. Feature construction is omitted altogether rather than disguised through renamed columns.
 
@@ -82,9 +84,11 @@ For an interactive walkthrough:
 .\.venv\Scripts\python.exe -m jupyterlab
 ```
 
-Run notebooks `01` through `04` in order. The first three create local synthetic OOF and test artifacts; the fourth reads and validates them before blending. Its weights and scores are synthetic and will not equal the competition weights or score.
+Run notebooks `01` through `04` in order. The first three create context-bound synthetic OOF and full-refit artifacts; the fourth validates them, selects weights once, and exports that exact selection. Its weights and scores are synthetic and will not equal the competition weights or score.
 
-Generated outputs live in the ignored `artifacts/` directory. Synthetic test labels are deliberately not returned by the data generator, so the demo reports OOF diagnostics only, not a test-performance claim. See [reproducibility notes](docs/REPRODUCIBILITY.md) for resume semantics and environment limits.
+Generated outputs live in the ignored `artifacts/` directory. Each model and ensemble export writes a new immutable `runs/<run_id>/` generation; an atomic `manifest.json` switch makes it active only after every payload is complete. Prior runs remain available so an older ensemble can verify the exact model generations it pinned, even after newer model runs become active.
+
+Artifact schema 1 is deliberately not upgraded in place. If an older output directory is present, choose a fresh directory and rerun model notebooks `01`–`03` before `04`; do not delete the old directory or its Optuna database. Synthetic test labels are deliberately not returned by the data generator, so the demo reports OOF diagnostics only, not a test-performance claim. See [reproducibility notes](docs/REPRODUCIBILITY.md) for artifact, resume, and environment limits.
 
 ## Validation limits matter
 

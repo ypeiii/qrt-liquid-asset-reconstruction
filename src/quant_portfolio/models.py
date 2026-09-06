@@ -14,6 +14,7 @@ from sklearn.preprocessing import StandardScaler
 
 from .data import Panel
 from .features import FeatureProvider, SyntheticFeatureProvider, validate_feature_pair
+from .provenance import attach_prediction_context, fold_protocol, generation_context
 
 MODEL_NAMES = ("ridge", "lightgbm", "extra_trees")
 
@@ -114,6 +115,8 @@ def model_oof(
     """
     panel.validate()
     feature_provider = provider if provider is not None else SyntheticFeatureProvider()
+    context = generation_context(panel, model_name, dict(params or {}), feature_provider, seed)
+    protocol = fold_protocol(panel, n_splits)
     output = pd.Series(np.nan, index=panel.train.index, name="prediction")
     coverage = pd.Series(0, index=panel.train.index)
     splitter = GroupKFold(n_splits=n_splits)
@@ -130,6 +133,7 @@ def model_oof(
         coverage.loc[values.index] += 1
     if not coverage.eq(1).all() or not np.isfinite(output.to_numpy()).all():
         raise RuntimeError("OOF predictions must cover every training row exactly once.")
+    attach_prediction_context(output, context, protocol)
     return output
 
 
@@ -142,7 +146,11 @@ def refit_predict(
 ) -> pd.Series:
     """Refit on all training rows and predict the disjoint unlabeled test panel."""
     panel.validate()
-    return _fit_predict(
+    feature_provider = provider if provider is not None else SyntheticFeatureProvider()
+    context = generation_context(panel, model_name, dict(params or {}), feature_provider, seed)
+    prediction = _fit_predict(
         model_name, panel.train, panel.y, panel.test, dict(params or {}),
-        provider if provider is not None else SyntheticFeatureProvider(), seed,
+        feature_provider, seed,
     )
+    attach_prediction_context(prediction, context, None)
+    return prediction

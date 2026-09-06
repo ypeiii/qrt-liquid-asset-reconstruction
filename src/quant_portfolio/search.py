@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from importlib.metadata import version
+from numbers import Integral
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,35 @@ class SearchResult:
     params: dict[str, Any]
     score: float
     table: pd.DataFrame
+
+
+def _validate_search_arguments(
+    panel: Panel,
+    initial_trials: int,
+    trials_per_reopen: int,
+    n_splits: int,
+    seed: int,
+) -> tuple[int, int, int, int]:
+    """Validate and normalize search controls before any persistent state exists."""
+    for name, value in (
+        ("initial_trials", initial_trials),
+        ("trials_per_reopen", trials_per_reopen),
+    ):
+        if not isinstance(value, Integral) or isinstance(value, bool):
+            # bool is an Integral subclass but is not a meaningful trial budget.
+            raise ValueError(f"{name} must be a positive integer.")
+        if value < 1:
+            raise ValueError(f"{name} must be a positive integer.")
+    if not isinstance(n_splits, Integral) or isinstance(n_splits, bool):
+        raise ValueError("n_splits must be an integer of at least two.")
+    distinct_days = panel.train.day_id.nunique(dropna=False)
+    if n_splits < 2 or n_splits > distinct_days:
+        raise ValueError(
+            "n_splits must be between two and the number of distinct training days."
+        )
+    if not isinstance(seed, Integral) or isinstance(seed, bool) or not 0 <= seed <= 2**32 - 1:
+        raise ValueError("seed must be an integer between 0 and 2**32 - 1.")
+    return int(initial_trials), int(trials_per_reopen), int(n_splits), int(seed)
 
 
 def ridge_grid_search(
@@ -79,14 +109,12 @@ def run_optuna_search(
     Data or search-context changes require a new study. Custom feature providers
     must expose a nonempty cache_key identifying their implementation/config.
     """
-    import optuna
-    from optuna.trial import TrialState
-
     if model_name not in ("lightgbm", "extra_trees"):
         raise ValueError("Optuna demo supports lightgbm and extra_trees only.")
-    if initial_trials < 1 or trials_per_reopen < 1:
-        raise ValueError("Trial budgets must be positive.")
     panel.validate()
+    initial_trials, trials_per_reopen, n_splits, seed = _validate_search_arguments(
+        panel, initial_trials, trials_per_reopen, n_splits, seed,
+    )
     feature_provider = provider if provider is not None else SyntheticFeatureProvider()
     if type(feature_provider) is SyntheticFeatureProvider:
         provider_key = "synthetic-column-selector-v1"
@@ -94,6 +122,10 @@ def run_optuna_search(
         provider_key = getattr(feature_provider, "cache_key", None)
         if not isinstance(provider_key, str) or not provider_key.strip():
             raise ValueError("Custom providers need a nonempty cache_key for persisted searches.")
+
+    import optuna
+    from optuna.trial import TrialState
+
     context = {
         "schema_version": 1,
         "panel_fingerprint": panel_fingerprint(panel),

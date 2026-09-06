@@ -5,11 +5,15 @@ optimum. Repeated group splits reuse the same base-model OOF predictions: they
 measure weight-selection stability, not independent end-to-end validation.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+import hashlib
 from numbers import Integral
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+from .provenance import indexed_fingerprint, json_bytes
 
 
 _WEIGHT_COLUMNS = ["weight_0", "weight_1", "weight_2"]
@@ -26,6 +30,24 @@ class CommonWeightsResult:
     epsilon: float
     min_feasible_epsilon: float
     selection_score: float
+    config: dict
+    input_fingerprint: str
+    source_manifests: dict
+    weights_fingerprint: str
+    selector_implementation_sha256: str
+    integrity_fingerprint: str = ""
+
+
+def selection_fingerprint(result: CommonWeightsResult) -> str:
+    """Detect accidental edits to a selected result before publication."""
+    digest = hashlib.sha256(json_bytes({
+        "config": result.config, "epsilon": result.epsilon,
+        "min_feasible_epsilon": result.min_feasible_epsilon, "score": result.selection_score,
+        "input_fingerprint": result.input_fingerprint, "source_manifests": result.source_manifests,
+        "selector_implementation_sha256": result.selector_implementation_sha256,
+    }))
+    digest.update(indexed_fingerprint(result.weights, result.candidates, result.diagnostics).encode("ascii"))
+    return digest.hexdigest()
 
 
 def _numeric_vector(values, name: str) -> np.ndarray:
@@ -123,6 +145,8 @@ def _validate_inputs(y, oof, groups):
 
 
 def _group_partitions(codes, labels, repeats, n_splits, seed):
+    if not isinstance(seed, Integral) or isinstance(seed, bool) or not 0 <= seed <= 2**32 - 1:
+        raise ValueError("seed must be an integer between 0 and 2**32 - 1.")
     if not isinstance(repeats, Integral) or isinstance(repeats, bool) or repeats < 1:
         raise ValueError("repeats must be a positive integer.")
     if not isinstance(n_splits, Integral) or isinstance(n_splits, bool) or n_splits < 2:
@@ -231,14 +255,22 @@ def learn_common_weights(
     ])
     for table in (candidates, diagnostics):
         table.attrs["model_names"] = list(oof.columns)
-    return CommonWeightsResult(
-        weights=pd.Series(grid[selected], index=oof.columns, name="weight"),
+    weights = pd.Series(grid[selected], index=oof.columns, name="weight")
+    result = CommonWeightsResult(
+        weights=weights,
         candidates=candidates,
         diagnostics=diagnostics,
         epsilon=epsilon,
         min_feasible_epsilon=minimum,
         selection_score=float(full_scores[selected]),
+        config={"repeats": int(repeats), "n_splits": int(n_splits), "seed": int(seed),
+                "step": float(step), "epsilon": epsilon},
+        input_fingerprint=indexed_fingerprint(y, oof, groups),
+        source_manifests=dict(oof.attrs.get("source_manifests", {})),
+        weights_fingerprint=indexed_fingerprint(weights),
+        selector_implementation_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
     )
+    return replace(result, integrity_fingerprint=selection_fingerprint(result))
 
 
 def cross_fitted_weight_score(
