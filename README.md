@@ -4,8 +4,8 @@
 
 Quantitative machine-learning research by **yang.pei** for [QRT / ENS ChallengeData #44](https://challengedata.ens.fr/challenges/44).
 
-**Public leaderboard rank: 5/484. Displayed public score: 0.7511. Username: `yang.pei`.**
-The [author-provided leaderboard screenshot](docs/evidence/public-leaderboard.png) shows the challenge, public ranking, username, and score. The author reports 484 entries; that total is not visible in the screenshot. This is a recorded public-board result, not a final placement or a live ranking check. See [result provenance](docs/RESULTS.md).
+**Public leaderboard rank: 5/484 (top 1.0%). Displayed public score: 0.7511. Username: `yang.pei`.**
+The [author-provided leaderboard screenshot](docs/evidence/public-leaderboard.png) shows the challenge, public ranking, username, and score. The author reports 484 entries; that total is not visible in the screenshot, and the approximate top 1.0% is calculated from that author-reported denominator. This is a recorded public-board result, not a final placement or a live ranking check. See [result provenance](docs/RESULTS.md).
 
 This project studies how to combine a pooled linear model with target-specific tree models for noisy cross-asset prediction. The public implementation exposes the modeling, numerical methods, validation, parameter search, and ensemble logic. **Proprietary feature construction and feature-bearing artifacts remain private.** An independent synthetic dataset makes the workflow runnable without distributing that research input; it does not reproduce the competition score.
 

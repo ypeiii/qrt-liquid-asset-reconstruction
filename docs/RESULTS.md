@@ -6,6 +6,7 @@
 | --- | --- |
 | Competition | Reconstruction of Liquid Asset Performance, QRT / ENS ChallengeData #44; [public challenge page](https://challengedata.ens.fr/challenges/44) |
 | Public leaderboard position | 5, visible in the supplied screenshot |
+| Project display | 5/484 (approximately top 1.0%); combines the screenshot-supported rank with the author-reported total |
 | Displayed public score | 0.7511, at the precision displayed by the platform |
 | Evidence status | Original author-provided screenshot, visually checked and included below; not an independent live platform lookup |
 | Screenshot capture timestamp | Not recorded in the image; do not infer it from the leaderboard's Date column |
@@ -25,7 +26,7 @@ The screenshot is evidence, not MIT-licensed source material. Third-party rights
 
 The public challenge page confirms the task and metric, but does not show the ranking entry in the retrieved public view. The image supports what was visible in that supplied screenshot; it does not establish a current live rank, capture time, or final result.
 
-To support the full expression "5/484", add separate evidence of the total field size and clarify whether it counts entries, participants, or teams. A capture timestamp can be added if the author can confirm it. Until then the principal project claim is rank 5 on the public leaderboard, score 0.7511.
+The project displays "5/484 (top 1.0%)" using the author's reported total. The percentage is approximate: `5 / 484 * 100 = 1.033...%`, rounded to one decimal place. The screenshot itself supports rank 5 and score 0.7511, but does not independently verify the denominator. Separate evidence is still needed to substantiate the total and establish whether it counts entries, participants, or teams. A capture timestamp can be added if the author can confirm it.
 
 ## What the repository verifies
 
@@ -35,6 +36,6 @@ The [competition case study](COMPETITION_CASE_STUDY.md) provides checked aggrega
 
 ## Suggested CV wording
 
-> QRT / ENS ChallengeData - Reconstruction of Liquid Asset Performance. Achieved public leaderboard rank 5 (score: 0.7511; handle: yang.pei). Developed a two-stage Ridge, LightGBM, and ExtraTrees ensemble with grouped OOF validation, hyperparameter search, and stability-aware blending. Public research code and synthetic-data demonstration; proprietary feature construction withheld.
+> QRT / ENS ChallengeData - Reconstruction of Liquid Asset Performance. Achieved public leaderboard rank 5/484 (approximately top 1.0%; score: 0.7511; handle: yang.pei). Developed a two-stage Ridge, LightGBM, and ExtraTrees ensemble with grouped OOF validation, hyperparameter search, and stability-aware blending. Public research code and synthetic-data demonstration; proprietary feature construction withheld.
 
-Link the project title to the published repository and the placement to the screenshot evidence. Add a dated "as of" qualifier only when the capture date is confirmed. Add the denominator after its supporting evidence is available.
+Link the competition title to the challenge page and provide a separate GitHub project link. The placement can remain plain text; this repository's provenance record distinguishes the screenshot-supported rank from the author-reported denominator. Add a dated "as of" qualifier only when the capture date is confirmed.
